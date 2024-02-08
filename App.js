@@ -15,6 +15,15 @@ export default function App() {
     }
   }
 
+  async function saveList() {
+    try {
+      const jsonValue = JSON.stringify(notes)
+      console.log(jsonValue);
+    } catch (erro) {
+      console.log("Error saving");
+    }
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.largeText}> Notebook </Text>
@@ -35,6 +44,7 @@ export default function App() {
           </View>
         ))}
       </View>
+      <Button title='saveList' onPress={saveList} />
     </View>
   );
 }
