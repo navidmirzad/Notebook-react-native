@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, Button, TextInput } from 'react-native';
+import { StyleSheet, Text, View, Button, TextInput, TouchableOpacity } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
 
@@ -13,10 +13,12 @@ export default function App() {
   
     const submit = () => {
       const newNote = text.trim();
+      const title = text.substring(0, 30);
       if (newNote) {
         const timestamp = new Date().toLocaleString();
-        const newNoteObject = { content: newNote, timestamp: timestamp };
+        const newNoteObject = { title: title,  content: newNote, timestamp: timestamp };
         setNotes([...notes, newNoteObject]);
+        console.log(newNoteObject);
         setText('');
       }
     };
@@ -35,23 +37,61 @@ export default function App() {
         <Button title="Submit" onPress={submit} />
         <View style={styles.notesContainer}>
           {notes.map((note, index) => (
-            <View key={index} style={styles.noteItem}>
-              <Text style={styles.noteContent}>{note.content}</Text>
-              <Text style={styles.timestamp}>{note.timestamp}</Text>
-            </View>
+             <TouchableOpacity 
+             key={index} 
+             onPress={() => navigation.navigate("DetailPage", 
+             { 
+               noteIndex: index, 
+               title: note.title, 
+               noteContent: note.content, 
+               timestamp: note.timestamp,
+               updateNote: (updatedNote) => {
+                 const updatedNotes = [...notes];
+                 updatedNotes[index] = updatedNote;
+                 setNotes(updatedNotes);
+               } 
+             })}>
+             <View style={styles.noteItem}>
+               <Text style={styles.title}>{note.title}</Text>
+               <Text style={styles.noteContent}>{note.content}</Text>
+               <Text style={styles.timestamp}>{note.timestamp}</Text>
+             </View>
+           </TouchableOpacity>
           ))}
         </View>
-        <Button title="Go To DetailPage" onPress={() => navigation.navigate("DetailPage")} />
       </View>
     );
   }
 
-  // DetailPage component
-  const DetailPage = ({ navigation }) => { // Capitalized component name
+  
+  const DetailPage = ({ navigation, route }) => { 
+
+    const { title, noteContent, timestamp, updateNote } = route.params;
+    const [editedContent, setEditedContent] = useState(noteContent);
+
+    const saveNote = () => {
+      const updatedNote = {
+        title: title,
+        content: editedContent,
+        timestamp: timestamp
+      };
+      updateNote(updatedNote);
+      navigation.goBack(); // Go back to the Home screen after saving the note
+    };
+
     return (
       <View style={styles.container}>
         <Text style={styles.largeText}> Detail Page </Text>
         <View style={styles.breakLine}/>
+        <Text>{title}</Text>
+        <TextInput
+          style={styles.input}
+          onChangeText={setEditedContent}
+          value={editedContent}
+          placeholder="Edit note..."
+          multiline={true}/>
+        <Button title="Save" onPress={saveNote} />
+        <Text>{timestamp}</Text>
       </View>
     );
   };
@@ -100,8 +140,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     paddingBottom: 5,
   },
+  title: {
+    fontSize: 20,
+    marginBottom: 5,
+  },
   noteContent: {
-    fontSize: 16,
+    fontSize: 12,
     marginBottom: 5,
   },
   timestamp: {
