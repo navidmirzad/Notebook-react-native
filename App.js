@@ -1,51 +1,68 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, Button, TextInput } from 'react-native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { NavigationContainer } from '@react-navigation/native';
 
 export default function App() {
-  const [text, setText] = useState("");
-  const [notes, setNotes] = useState([]);
 
-  function submit() {
-    const newNote = text.trim();
-    if (newNote) {
-      const timestamp = new Date().toLocaleString(); // Get current timestamp
-      const newNoteObject = { content: newNote, timestamp: timestamp };
-      setNotes([...notes, newNoteObject]);
-      setText('');
-    }
+  const Stack = createNativeStackNavigator(); 
+
+  const Home = ({ navigation, route }) => {
+    const [text, setText] = useState("");
+    const [notes, setNotes] = useState([]);
+  
+    const submit = () => {
+      const newNote = text.trim();
+      if (newNote) {
+        const timestamp = new Date().toLocaleString();
+        const newNoteObject = { content: newNote, timestamp: timestamp };
+        setNotes([...notes, newNoteObject]);
+        setText('');
+      }
+    };
+
+    return (
+      <View style={styles.container}>
+        <Text style={styles.largeText}> Notebook </Text>
+        <View style={styles.breakLine} />
+        <TextInput
+          style={styles.input}
+          onChangeText={setText}
+          value={text}
+          placeholder="Write note..."
+          multiline={true}
+        />
+        <Button title="Submit" onPress={submit} />
+        <View style={styles.notesContainer}>
+          {notes.map((note, index) => (
+            <View key={index} style={styles.noteItem}>
+              <Text style={styles.noteContent}>{note.content}</Text>
+              <Text style={styles.timestamp}>{note.timestamp}</Text>
+            </View>
+          ))}
+        </View>
+        <Button title="Go To DetailPage" onPress={() => navigation.navigate("DetailPage")} />
+      </View>
+    );
   }
 
-  async function saveList() {
-    try {
-      const jsonValue = JSON.stringify(notes)
-      console.log(jsonValue);
-    } catch (erro) {
-      console.log("Error saving");
-    }
-  }
+  // DetailPage component
+  const DetailPage = ({ navigation }) => { // Capitalized component name
+    return (
+      <View style={styles.container}>
+        <Text style={styles.largeText}> Detail Page </Text>
+        <View style={styles.breakLine}/>
+      </View>
+    );
+  };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.largeText}> Notebook </Text>
-      <View style={styles.breakLine} />
-      <TextInput
-        style={styles.input}
-        onChangeText={setText}
-        value={text}
-        placeholder="Write note..."
-        multiline={true}
-      />
-      <Button title="Submit" onPress={submit} />
-      <View style={styles.notesContainer}>
-        {notes.map((note, index) => (
-          <View key={index} style={styles.noteItem}>
-            <Text style={styles.noteContent}>{note.content}</Text>
-            <Text style={styles.timestamp}>{note.timestamp}</Text>
-          </View>
-        ))}
-      </View>
-      <Button title='saveList' onPress={saveList} />
-    </View>
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="Home">
+        <Stack.Screen name="Home" component={Home} />
+        <Stack.Screen name="DetailPage" component={DetailPage} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 
