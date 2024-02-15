@@ -67,11 +67,12 @@ export default function App() {
   const DetailPage = ({ navigation, route }) => { 
 
     const { title, noteContent, timestamp, updateNote } = route.params;
+    const [editedTitle, setEditedTitle] = useState(title);
     const [editedContent, setEditedContent] = useState(noteContent);
 
     const saveNote = () => {
       const updatedNote = {
-        title: title,
+        title: editedTitle,
         content: editedContent,
         timestamp: timestamp
       };
