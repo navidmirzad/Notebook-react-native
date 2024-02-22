@@ -19,6 +19,7 @@ export default function App() {
   const Home = ({ navigation, route }) => {
     const [text, setText] = useState("");
     const [notes, setNotes] = useState([]);
+    const [editNote, setEditedNote] = useState([null]);
     const [values, loading, error] = useCollection(
       collection(database, "notes")
     );
@@ -56,6 +57,10 @@ export default function App() {
       }
     };
 
+    async function viewUpdate(item) {
+      setEditedNote(item);
+    }
+
     async function deleteNote(id) {
       try {
         await deleteDoc(doc(database, "notes", id));
@@ -79,33 +84,21 @@ export default function App() {
         <Button title="Submit" onPress={submit} />
         <View style={styles.notesContainer}>
           {notes.map((note, index) => (
-            <TouchableOpacity
-              key={index}
-              onPress={() =>
-                navigation.navigate("DetailPage", {
-                  noteIndex: index,
-                  title: note.title,
-                  noteContent: note.content,
-                  timestamp: note.timestamp,
-                  updateNote: (updatedNote) => {
-                    const updatedNotes = [...notes];
-                    updatedNotes[index] = updatedNote;
-                    setNotes(updatedNotes);
-                  },
-                })
-              }
-            >
-              <View style={styles.noteItem}>
-                <View style={styles.noteContentContainer}>
-                  <Text style={styles.title}>{note.title}</Text>
-                  <Text style={styles.noteContent}>{note.content}</Text>
-                  <Text style={styles.timestamp}>{note.timestamp}</Text>
-                </View>
+            <View key={index} style={styles.noteItem}>
+              <View style={styles.noteContentContainer}>
+                <Text style={styles.title}>{note.title}</Text>
+                <Text style={styles.noteContent}>{note.content}</Text>
+                <Text style={styles.timestamp}>{note.timestamp}</Text>
+              </View>
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity onPress={() => updateNote(note.item)}>
+                  <Text style={styles.updateNote}>Update</Text>
+                </TouchableOpacity>
                 <TouchableOpacity onPress={() => deleteNote(note.id)}>
                   <Text style={styles.deleteNote}>Delete</Text>
                 </TouchableOpacity>
               </View>
-            </TouchableOpacity>
+            </View>
           ))}
         </View>
       </View>
@@ -192,6 +185,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     paddingBottom: 5,
   },
+  noteContentContainer: {
+    flex: 1,
+  },
   title: {
     fontSize: 20,
     marginBottom: 5,
@@ -204,11 +200,21 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "gray",
   },
+  updateNote: {
+    padding: 8,
+    backgroundColor: "green",
+    borderRadius: 5,
+    fontSize: 15,
+    margin: 5,
+  },
   deleteNote: {
-    padding: 5,
+    padding: 8,
     backgroundColor: "red",
     borderRadius: 5,
     fontSize: 15,
-    float: "right",
+    margin: 5,
+  },
+  buttonContainer: {
+    flexDirection: "row",
   },
 });
