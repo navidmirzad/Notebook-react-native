@@ -1,5 +1,5 @@
 import { app, database } from "./firebase";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, deleteDoc, doc } from "firebase/firestore";
 import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
@@ -14,8 +14,6 @@ import { NavigationContainer } from "@react-navigation/native";
 import { useCollection } from "react-firebase-hooks/firestore";
 
 export default function App() {
-  //alert(JSON.stringify(database, null, 4));
-
   const Stack = createNativeStackNavigator();
 
   const Home = ({ navigation, route }) => {
@@ -58,6 +56,15 @@ export default function App() {
       }
     };
 
+    async function deleteNote(id) {
+      try {
+        await deleteDoc(doc(database, "notes", id));
+        console.log("Note deleted from Firebase with id: " + id);
+      } catch (error) {
+        console.log("Error deleting note from Firebase: " + error);
+      }
+    }
+
     return (
       <View style={styles.container}>
         <Text style={styles.largeText}> Notebook </Text>
@@ -89,9 +96,14 @@ export default function App() {
               }
             >
               <View style={styles.noteItem}>
-                <Text style={styles.title}>{note.title}</Text>
-                <Text style={styles.noteContent}>{note.content}</Text>
-                <Text style={styles.timestamp}>{note.timestamp}</Text>
+                <View style={styles.noteContentContainer}>
+                  <Text style={styles.title}>{note.title}</Text>
+                  <Text style={styles.noteContent}>{note.content}</Text>
+                  <Text style={styles.timestamp}>{note.timestamp}</Text>
+                </View>
+                <TouchableOpacity onPress={() => deleteNote(note.id)}>
+                  <Text style={styles.deleteNote}>Delete</Text>
+                </TouchableOpacity>
               </View>
             </TouchableOpacity>
           ))}
@@ -169,10 +181,13 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
   },
   notesContainer: {
-    width: "80%",
+    width: "60%",
     marginTop: 20,
   },
   noteItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 10,
     borderBottomWidth: 1,
     paddingBottom: 5,
@@ -188,5 +203,12 @@ const styles = StyleSheet.create({
   timestamp: {
     fontSize: 12,
     color: "gray",
+  },
+  deleteNote: {
+    padding: 5,
+    backgroundColor: "red",
+    borderRadius: 5,
+    fontSize: 15,
+    float: "right",
   },
 });
