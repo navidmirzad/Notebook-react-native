@@ -24,13 +24,16 @@ export default function App() {
     const [values, loading, error] = useCollection(
       collection(database, "notes")
     );
-    const data = values?.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
 
     useEffect(() => {
-      if (!loading && data) {
-        setNotes(data);
+      if (!loading && values) {
+        const retrievedNotes = values.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setNotes(retrievedNotes);
       }
-    }, [loading, data]);
+    }, [loading, values]);
 
     const submit = async () => {
       const newNote = text.trim();
