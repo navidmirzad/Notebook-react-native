@@ -1,6 +1,6 @@
 import { app, database } from "./firebase";
 import { collection, addDoc } from "firebase/firestore";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { NavigationContainer } from "@react-navigation/native";
+import { useCollection } from "react-firebase-hooks/firestore";
 
 export default function App() {
   //alert(JSON.stringify(database, null, 4));
@@ -20,6 +21,16 @@ export default function App() {
   const Home = ({ navigation, route }) => {
     const [text, setText] = useState("");
     const [notes, setNotes] = useState([]);
+    const [values, loading, error] = useCollection(
+      collection(database, "notes")
+    );
+    const data = values?.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
+
+    useEffect(() => {
+      if (!loading && data) {
+        setNotes(data);
+      }
+    }, [loading, data]);
 
     const submit = async () => {
       const newNote = text.trim();
