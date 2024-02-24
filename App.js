@@ -1,5 +1,11 @@
 import { app, database } from "./firebase";
-import { collection, addDoc, deleteDoc, doc } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  deleteDoc,
+  updateDoc,
+  doc,
+} from "firebase/firestore";
 import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
@@ -41,6 +47,7 @@ export default function App() {
       if (newNote) {
         const timestamp = new Date().toLocaleString();
         const newNoteObject = {
+          IncrementedId: notes.length + 1,
           title: title,
           content: newNote,
           timestamp: timestamp,
@@ -57,8 +64,25 @@ export default function App() {
       }
     };
 
-    async function viewUpdate(item) {
-      setEditedNote(item);
+    async function updateNote(id, title, content) {
+      console.log("Clicked update button");
+      navigation.navigate("DetailPage", {
+        id: id,
+        title: title,
+        noteContent: content,
+        timestamp: new Date().toLocaleString(),
+        updateNote: updateNoteInFirebase, // Pass the updateNoteInFirebase function
+      });
+    }
+
+    async function updateNoteInFirebase(id, updatedNote) {
+      try {
+        await updateDoc(doc(database, "notes", id), updatedNote);
+        console.log("Note updated in Firebase with id: " + id);
+      } catch (error) {
+        console.log("Error updating note in Firebase: " + error);
+        throw error; // Propagate the error to the caller
+      }
     }
 
     async function deleteNote(id) {
@@ -86,12 +110,23 @@ export default function App() {
           {notes.map((note, index) => (
             <View key={index} style={styles.noteItem}>
               <View style={styles.noteContentContainer}>
+                <Text style={styles.id}>ID: {note.IncrementedId}</Text>
+                <Text>{note.id}</Text>
                 <Text style={styles.title}>{note.title}</Text>
                 <Text style={styles.noteContent}>{note.content}</Text>
                 <Text style={styles.timestamp}>{note.timestamp}</Text>
               </View>
               <View style={styles.buttonContainer}>
-                <TouchableOpacity onPress={() => updateNote(note.item)}>
+                <TouchableOpacity
+                  onPress={() =>
+                    updateNote(
+                      note.id,
+                      note.title,
+                      note.content,
+                      note.timestamp
+                    )
+                  }
+                >
                   <Text style={styles.updateNote}>Update</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => deleteNote(note.id)}>
@@ -106,34 +141,36 @@ export default function App() {
   };
 
   const DetailPage = ({ navigation, route }) => {
-    const { title, noteContent, timestamp, updateNote } = route.params;
+    const { id, title, noteContent, timestamp, updateNote } = route.params;
     const [editedTitle, setEditedTitle] = useState(title);
     const [editedContent, setEditedContent] = useState(noteContent);
 
-    const saveNote = () => {
+    const saveNote = async () => {
       const updatedNote = {
         title: editedTitle,
         content: editedContent,
         timestamp: timestamp,
       };
-      updateNote(updatedNote);
-      navigation.goBack(); // Go back to the Home screen after saving the note
+      try {
+        await updateNote(id, updatedNote); // Call the updateNote function passed from the Home screen to update the note in Firebase
+        navigation.goBack(); // Go back to the Home screen after saving the note
+      } catch (error) {
+        console.error("Error updating note:", error);
+      }
     };
 
     return (
       <View style={styles.container}>
         <Text style={styles.largeText}> Detail Page </Text>
         <View style={styles.breakLine} />
-        <Text>{title}</Text>
+        <Text>Title: {title}</Text>
         <TextInput
           style={styles.input}
           onChangeText={setEditedContent}
-          value={editedContent}
-          placeholder="Edit note..."
+          placeholder={editedContent}
           multiline={true}
         />
-        <Button title="Save" onPress={saveNote} />
-        <Text>{timestamp}</Text>
+        <Button title="Update" onPress={saveNote} />
       </View>
     );
   };
