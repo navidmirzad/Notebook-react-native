@@ -14,10 +14,12 @@ import {
   Button,
   TextInput,
   TouchableOpacity,
+  Image,
 } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { NavigationContainer } from "@react-navigation/native";
 import { useCollection } from "react-firebase-hooks/firestore";
+import * as ImagePicker from "expo-image-picker";
 
 export default function App() {
   const Stack = createNativeStackNavigator();
@@ -25,10 +27,10 @@ export default function App() {
   const Home = ({ navigation, route }) => {
     const [text, setText] = useState("");
     const [notes, setNotes] = useState([]);
-    const [editNote, setEditedNote] = useState([null]);
     const [values, loading, error] = useCollection(
       collection(database, "notes")
     );
+    const [imagePath, setImagePath] = useState(null);
 
     useEffect(() => {
       if (!loading && values) {
@@ -94,6 +96,15 @@ export default function App() {
       }
     }
 
+    async function pickImage() {
+      let imagePicked = await ImagePicker.launchImageLibraryAsync({
+        allowsEditing: true,
+      });
+      if (!imagePicked.canceled) {
+        setImagePath(imagePicked.assets[0].uri);
+      }
+    }
+
     return (
       <View style={styles.container}>
         <Text style={styles.largeText}> Notebook </Text>
@@ -105,7 +116,15 @@ export default function App() {
           placeholder="Write note..."
           multiline={true}
         />
-        <Button title="Submit" onPress={submit} />
+        <Image
+          style={{ width: 400, height: 150, margin: 20 }}
+          source={{ uri: imagePath }}
+        />
+        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+          <Button title="Pick Image" onPress={pickImage} />
+          <View style={{ marginLeft: 10 }} />
+          <Button title="Submit" onPress={submit} />
+        </View>
         <View style={styles.notesContainer}>
           {notes.map((note, index) => (
             <View key={index} style={styles.noteItem}>
@@ -152,7 +171,7 @@ export default function App() {
         timestamp: timestamp,
       };
       try {
-        await updateNote(id, updatedNote); // Call the updateNote function passed from the Home screen to update the note in Firebase
+        await updateNote(id, updatedNote); // Call the updateNote function passed from the Home scwreen to update the note in Firebase
         navigation.goBack(); // Go back to the Home screen after saving the note
       } catch (error) {
         console.error("Error updating note:", error);
