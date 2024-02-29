@@ -20,6 +20,8 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { NavigationContainer } from "@react-navigation/native";
 import { useCollection } from "react-firebase-hooks/firestore";
 import * as ImagePicker from "expo-image-picker";
+import { storage } from "./firebase";
+import { ref, uploadBytes } from "firebase/storage";
 
 export default function App() {
   const Stack = createNativeStackNavigator();
@@ -32,6 +34,7 @@ export default function App() {
     );
     const [imagePath, setImagePath] = useState(null);
 
+    // reads notes from firebase
     useEffect(() => {
       if (!loading && values) {
         const retrievedNotes = values.docs.map((doc) => ({
@@ -60,6 +63,7 @@ export default function App() {
           console.log("Note added to Firestore:", newNoteObject);
           setNotes([...notes, newNoteObject]);
           setText("");
+          await uploadImage(); // Call uploadImage() after the note is submitted
         } catch (error) {
           console.error("Error adding note to Firestore:", error);
         }
@@ -105,6 +109,25 @@ export default function App() {
       }
     }
 
+    // blob = binary large object
+    async function uploadImage() {
+      if (!imagePath) {
+        console.log("No image to upload");
+        return;
+      }
+
+      try {
+        const res = await fetch(imagePath);
+        const blob = await res.blob();
+        const storageRef = ref(storage, "myimage.jpg");
+        await uploadBytes(storageRef, blob);
+        setImagePath("");
+        console.log("Image uploaded successfully");
+      } catch (error) {
+        console.error("Error uploading image:", error);
+      }
+    }
+
     return (
       <View style={styles.container}>
         <Text style={styles.largeText}> Notebook </Text>
@@ -117,7 +140,12 @@ export default function App() {
           multiline={true}
         />
         <Image
-          style={{ width: 400, height: 150, margin: 20 }}
+          style={{
+            width: 400,
+            height: 150,
+            margin: 20,
+            border: "2px solid black",
+          }}
           source={{ uri: imagePath }}
         />
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
