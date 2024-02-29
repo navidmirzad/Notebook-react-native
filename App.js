@@ -21,7 +21,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { useCollection } from "react-firebase-hooks/firestore";
 import * as ImagePicker from "expo-image-picker";
 import { storage } from "./firebase";
-import { ref, uploadBytes } from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 export default function App() {
   const Stack = createNativeStackNavigator();
@@ -128,6 +128,17 @@ export default function App() {
       }
     }
 
+    async function getImage() {
+      try {
+        getDownloadURL(ref(storage, "myimage.jpg")).then((url) => {
+          setImagePath(url);
+          console.log("getImage succesful");
+        });
+      } catch (error) {
+        console.log("Couldn't get image from firebase");
+      }
+    }
+
     return (
       <View style={styles.container}>
         <Text style={styles.largeText}> Notebook </Text>
@@ -149,6 +160,8 @@ export default function App() {
           source={{ uri: imagePath }}
         />
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+          <Button title="Get Image" onPress={getImage}></Button>
+          <View style={{ marginLeft: 10 }} />
           <Button title="Pick Image" onPress={pickImage} />
           <View style={{ marginLeft: 10 }} />
           <Button title="Submit" onPress={submit} />
