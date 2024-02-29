@@ -43,6 +43,7 @@ export default function App() {
         }));
         setNotes(retrievedNotes);
       }
+      getImage();
     }, [loading, values]);
 
     const submit = async () => {
@@ -56,6 +57,7 @@ export default function App() {
           title: title,
           content: newNote,
           timestamp: timestamp,
+          imagePath: imagePath,
         };
 
         try {
@@ -115,11 +117,10 @@ export default function App() {
         console.log("No image to upload");
         return;
       }
-
       try {
         const res = await fetch(imagePath);
         const blob = await res.blob();
-        const storageRef = ref(storage, "myimage.jpg");
+        const storageRef = ref(storage, help + "image.jpg");
         await uploadBytes(storageRef, blob);
         setImagePath("");
         console.log("Image uploaded successfully");
@@ -130,12 +131,12 @@ export default function App() {
 
     async function getImage() {
       try {
-        getDownloadURL(ref(storage, "myimage.jpg")).then((url) => {
+        getDownloadURL(ref(storage, help + "image.jpg")).then((url) => {
           setImagePath(url);
           console.log("getImage succesful");
         });
       } catch (error) {
-        console.log("Couldn't get image from firebase");
+        console.log("Couldn't get image from firebase " + error);
       }
     }
 
@@ -160,8 +161,6 @@ export default function App() {
           source={{ uri: imagePath }}
         />
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-          <Button title="Get Image" onPress={getImage}></Button>
-          <View style={{ marginLeft: 10 }} />
           <Button title="Pick Image" onPress={pickImage} />
           <View style={{ marginLeft: 10 }} />
           <Button title="Submit" onPress={submit} />
@@ -204,33 +203,62 @@ export default function App() {
     const { id, title, noteContent, timestamp, updateNote } = route.params;
     const [editedTitle, setEditedTitle] = useState(title);
     const [editedContent, setEditedContent] = useState(noteContent);
+    const [imagePath, setImagePath] = useState(null);
+
+    useEffect(() => {
+      getImage();
+    }, []);
 
     const saveNote = async () => {
       const updatedNote = {
         title: editedTitle,
         content: editedContent,
         timestamp: timestamp,
+        imagePath: imagePath,
       };
       try {
+        await uploadImage();
         await updateNote(id, updatedNote); // Call the updateNote function passed from the Home scwreen to update the note in Firebase
         navigation.goBack(); // Go back to the Home screen after saving the note
       } catch (error) {
         console.error("Error updating note:", error);
       }
     };
+    async function pickImage() {
+      let imagePicked = await ImagePicker.launchImageLibraryAsync({
+        allowsEditing: true,
+      });
+      if (!imagePicked.canceled) {
+        setImagePath(imagePicked.assets[0].uri);
+      }
+    }
 
     return (
       <View style={styles.container}>
         <Text style={styles.largeText}> Detail Page </Text>
+        <Text>{title}</Text>
         <View style={styles.breakLine} />
-        <Text>Title: {title}</Text>
         <TextInput
           style={styles.input}
           onChangeText={setEditedContent}
           placeholder={editedContent}
           multiline={true}
         />
-        <Button title="Update" onPress={saveNote} />
+        <Image
+          style={{
+            width: 400,
+            height: 200,
+            margin: 10,
+            marginBottom: 20,
+            border: "2px solid black",
+          }}
+          source={{ uri: imagePath }}
+        />
+        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+          <Button title="Pick Image" onPress={pickImage} />
+          <View style={{ marginLeft: 10 }} />
+          <Button title="Update" onPress={saveNote} />
+        </View>
       </View>
     );
   };
