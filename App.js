@@ -42,8 +42,10 @@ export default function App() {
           ...doc.data(),
         }));
         setNotes(retrievedNotes);
+        retrievedNotes.forEach((note) => {
+          getImage(note.id);
+        });
       }
-      getImage();
     }, [loading, values]);
 
     const submit = async () => {
@@ -57,15 +59,18 @@ export default function App() {
           title: title,
           content: newNote,
           timestamp: timestamp,
-          imagePath: imagePath,
+          imagePath: "",
         };
 
         try {
-          await addDoc(collection(database, "notes"), newNoteObject);
+          const docRef = await addDoc(
+            collection(database, "notes"),
+            newNoteObject
+          );
           console.log("Note added to Firestore:", newNoteObject);
-          setNotes([...notes, newNoteObject]);
+          setNotes([...notes, { ...newNoteObject, id: docRef.id }]);
           setText("");
-          await uploadImage(); // Call uploadImage() after the note is submitted
+          await uploadImage(docRef.id); // Call uploadImage() after the note is submitted
         } catch (error) {
           console.error("Error adding note to Firestore:", error);
         }
@@ -112,7 +117,7 @@ export default function App() {
     }
 
     // blob = binary large object
-    async function uploadImage() {
+    async function uploadImage(noteId) {
       if (!imagePath) {
         console.log("No image to upload");
         return;
@@ -120,7 +125,7 @@ export default function App() {
       try {
         const res = await fetch(imagePath);
         const blob = await res.blob();
-        const storageRef = ref(storage, help + "image.jpg");
+        const storageRef = ref(storage, `${noteId}_image.jpg`);
         await uploadBytes(storageRef, blob);
         setImagePath("");
         console.log("Image uploaded successfully");
@@ -131,7 +136,7 @@ export default function App() {
 
     async function getImage() {
       try {
-        getDownloadURL(ref(storage, help + "image.jpg")).then((url) => {
+        getDownloadURL(ref(storage, `${noteId}_image.jpg`)).then((url) => {
           setImagePath(url);
           console.log("getImage succesful");
         });
@@ -214,10 +219,10 @@ export default function App() {
         title: editedTitle,
         content: editedContent,
         timestamp: timestamp,
-        imagePath: imagePath,
+        imagePath: "",
       };
       try {
-        await uploadImage();
+        await uploadImage(id);
         await updateNote(id, updatedNote); // Call the updateNote function passed from the Home scwreen to update the note in Firebase
         navigation.goBack(); // Go back to the Home screen after saving the note
       } catch (error) {
@@ -230,6 +235,34 @@ export default function App() {
       });
       if (!imagePicked.canceled) {
         setImagePath(imagePicked.assets[0].uri);
+      }
+    }
+
+    async function uploadImage(noteId) {
+      if (!imagePath) {
+        console.log("No image to upload");
+        return;
+      }
+      try {
+        const res = await fetch(imagePath);
+        const blob = await res.blob();
+        const storageRef = ref(storage, `${noteId}_image.jpg`);
+        await uploadBytes(storageRef, blob);
+        setImagePath("");
+        console.log("Image uploaded successfully");
+      } catch (error) {
+        console.error("Error uploading image:", error);
+      }
+    }
+
+    async function getImage() {
+      try {
+        getDownloadURL(ref(storage, `${id}_image.jpg`)).then((url) => {
+          setImagePath(url);
+          console.log("getImage successful");
+        });
+      } catch (error) {
+        console.log("Couldn't get image from firebase " + error);
       }
     }
 
