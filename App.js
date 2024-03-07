@@ -107,6 +107,23 @@ export default function App() {
       }
     }
 
+    async function pickImageFromCamera() {
+      const result = await ImagePicker.requestCameraPermissionsAsync();
+      if (result.granted === false) {
+        alert("Permission denied");
+      } else {
+        ImagePicker.launchCameraAsync({
+          quality: 1
+        })
+        .then((response) => {
+          if (!response.canceled) {
+            setImagePath(response.assets[0].uri)
+          }
+        })
+        .catch((error) => alert("Issues with camera: " + error))
+      }
+    }
+
     async function pickImage() {
       let imagePicked = await ImagePicker.launchImageLibraryAsync({
         allowsEditing: true,
@@ -114,7 +131,7 @@ export default function App() {
       if (!imagePicked.canceled) {
         setImagePath(imagePicked.assets[0].uri);
       }
-    }
+    } 
 
     // blob = binary large object
     async function uploadImage(noteId) {
@@ -166,6 +183,8 @@ export default function App() {
           source={{ uri: imagePath }}
         />
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+        <Button title="Pick Image (Camera)" onPress={pickImageFromCamera} />
+          <View style={{ marginLeft: 10 }} /> 
           <Button title="Pick Image" onPress={pickImage} />
           <View style={{ marginLeft: 10 }} />
           <Button title="Submit" onPress={submit} />
