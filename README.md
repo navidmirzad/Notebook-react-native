@@ -8,3 +8,5 @@
 4. npm install @react-navigation/native-stack @react-navigation/native
 5. npx expo install expo-image-picker
 6. npm install axios
+7. npx expo install expo-auth-session
+8. npm install -g eas-cli

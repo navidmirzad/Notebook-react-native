@@ -4,7 +4,9 @@ import { useState } from "react";
 import axios from "axios";
 import { ImageBackground } from "react-native-web";
 
-export default function MyComponent() {
+// ios: 203480973703-qf0ke1lhuijg6vhdg1c9b7vfacma7rup.apps.googleusercontent.com
+
+export default function MyComponent({ navigation }) {
   const API_KEY = "AIzaSyBNX-p8DRubGnM8K3QgtHi_s7ccok5BaIE";
   const url =
     "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=";
@@ -12,7 +14,6 @@ export default function MyComponent() {
     "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=";
   const [enteredEmail, setEnteredEmail] = useState("navidmirzad@hotmail.com");
   const [enteredPassword, setEnteredPassword] = useState("navid123");
-
 
   async function signUp() {
     try {
@@ -22,6 +23,7 @@ export default function MyComponent() {
         returnSecureToken: true,
       });
       alert("Account created succesfully!" + response.data.idToken);
+      navigation.navigate("Home", {});
     } catch (error) {
       alert(
         "Error creating account: " + error.response.data.error.errors[0].message
@@ -37,6 +39,7 @@ export default function MyComponent() {
         returnSecureToken: true,
       });
       alert("Logged in" + response.data.idToken);
+      navigation.navigate("Home", {});
     } catch (error) {
       alert(
         "Ikke logget ind, error: " + error.response.data.error.errors[0].message
