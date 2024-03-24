@@ -8,8 +8,26 @@ export default function MyComponent() {
   const API_KEY = "AIzaSyBNX-p8DRubGnM8K3QgtHi_s7ccok5BaIE";
   const url =
     "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=";
+  const signUpUrl =
+    "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=";
   const [enteredEmail, setEnteredEmail] = useState("navidmirzad@hotmail.com");
   const [enteredPassword, setEnteredPassword] = useState("navid123");
+
+
+  async function signUp() {
+    try {
+      const response = await axios.post(signUpUrl + API_KEY, {
+        email: enteredEmail,
+        password: enteredPassword,
+        returnSecureToken: true,
+      });
+      alert("Account created succesfully!" + response.data.idToken);
+    } catch (error) {
+      alert(
+        "Error creating account: " + error.response.data.error.errors[0].message
+      );
+    }
+  }
 
   async function login() {
     try {
@@ -45,7 +63,7 @@ export default function MyComponent() {
               value={enteredPassword}
               style={styles.input}
             />
-            <Button title="REGISTER" onPress={login} style={styles.button} />
+            <Button title="REGISTER" onPress={signUp} style={styles.button} />
           </View>
           <View>
             <Text style={styles.text}>Login</Text>
