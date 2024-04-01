@@ -32,7 +32,6 @@ export default function Home({ navigation, route }) {
   useEffect(() => {
     if (!loading && values) {
       const currentUserEmail = route.params.email;
-
       const retrievedNotes = values.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
@@ -42,7 +41,6 @@ export default function Home({ navigation, route }) {
       const userNotes = retrievedNotes.filter(
         (note) => note.email === currentUserEmail
       );
-
       setNotes(userNotes);
 
       userNotes.forEach((note) => {

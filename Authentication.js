@@ -12,18 +12,21 @@ export default function Authentication({ navigation }) {
     "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=";
   const signUpUrl =
     "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=";
-  const [enteredEmail, setEnteredEmail] = useState("navidmirzad@hotmail.com");
-  const [enteredPassword, setEnteredPassword] = useState("navid123");
+
+  const [newEnteredEmail, setNewEnteredEmail] = useState("");
+  const [newEnteredPassword, setNewEnteredPassword] = useState("");
+  const [enteredEmail, setEnteredEmail] = useState("");
+  const [enteredPassword, setEnteredPassword] = useState("");
 
   async function signUp() {
     try {
       const response = await axios.post(signUpUrl + API_KEY, {
-        email: enteredEmail,
-        password: enteredPassword,
+        email: newEnteredEmail,
+        password: newEnteredPassword,
         returnSecureToken: true,
       });
       alert("Account created succesfully!" + response.data.idToken);
-      navigation.navigate("Home", { email: enteredEmail });
+      navigation.navigate("Home", { email: newEnteredEmail });
     } catch (error) {
       alert(
         "Error creating account: " + error.response.data.error.errors[0].message
@@ -57,14 +60,16 @@ export default function Authentication({ navigation }) {
           <View>
             <Text style={styles.text}>Register</Text>
             <TextInput
-              onChangeText={(newText) => setEnteredEmail(newText)}
-              value={enteredEmail}
+              onChangeText={(newText) => setNewEnteredEmail(newText)}
+              value={newEnteredEmail}
               style={styles.input}
+              placeholder="Enter new email..."
             />
             <TextInput
-              onChangeText={(newText) => setEnteredPassword(newText)}
-              value={enteredPassword}
+              onChangeText={(newText) => setNewEnteredPassword(newText)}
+              value={newEnteredPassword}
               style={styles.input}
+              placeholder="Enter new password..."
             />
             <Button title="REGISTER" onPress={signUp} style={styles.button} />
           </View>
@@ -74,11 +79,13 @@ export default function Authentication({ navigation }) {
               onChangeText={(newText) => setEnteredEmail(newText)}
               value={enteredEmail}
               style={styles.input}
+              placeholder="Enter Email..."
             />
             <TextInput
               onChangeText={(newText) => setEnteredPassword(newText)}
               value={enteredPassword}
               style={styles.input}
+              placeholder="Enter password..."
             />
             <Button title="LOGIN" onPress={login} style={styles.button} />
           </View>
@@ -118,5 +125,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     flex: 1,
     textAlign: "center",
+    borderWidth: 1,
+    borderColor: "black",
   },
 });
