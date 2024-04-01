@@ -6,7 +6,7 @@ import { ImageBackground } from "react-native-web";
 
 // ios: 203480973703-qf0ke1lhuijg6vhdg1c9b7vfacma7rup.apps.googleusercontent.com
 
-export default function MyComponent({ navigation }) {
+export default function Authentication({ navigation }) {
   const API_KEY = "AIzaSyBNX-p8DRubGnM8K3QgtHi_s7ccok5BaIE";
   const url =
     "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=";
@@ -23,7 +23,7 @@ export default function MyComponent({ navigation }) {
         returnSecureToken: true,
       });
       alert("Account created succesfully!" + response.data.idToken);
-      navigation.navigate("Home", {});
+      navigation.navigate("Home", { email: enteredEmail });
     } catch (error) {
       alert(
         "Error creating account: " + error.response.data.error.errors[0].message
@@ -39,7 +39,7 @@ export default function MyComponent({ navigation }) {
         returnSecureToken: true,
       });
       alert("Logged in" + response.data.idToken);
-      navigation.navigate("Home", {});
+      navigation.navigate("Home", { email: enteredEmail });
     } catch (error) {
       alert(
         "Ikke logget ind, error: " + error.response.data.error.errors[0].message

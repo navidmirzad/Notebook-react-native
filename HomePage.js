@@ -18,7 +18,7 @@ import {
 } from "react-native";
 import { useCollection } from "react-firebase-hooks/firestore";
 import * as ImagePicker from "expo-image-picker";
-import { storage } from "./firebase";
+import { storage, auth } from "./firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import axios from "axios";
 
@@ -31,12 +31,21 @@ export default function Home({ navigation, route }) {
   // reads notes from firebase
   useEffect(() => {
     if (!loading && values) {
+      const currentUserEmail = route.params.email;
+
       const retrievedNotes = values.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
-      setNotes(retrievedNotes);
-      retrievedNotes.forEach((note) => {
+
+      // Filter notes based on the current user's email
+      const userNotes = retrievedNotes.filter(
+        (note) => note.email === currentUserEmail
+      );
+
+      setNotes(userNotes);
+
+      userNotes.forEach((note) => {
         getImage(note.id);
       });
     }
@@ -48,12 +57,14 @@ export default function Home({ navigation, route }) {
 
     if (newNote) {
       const timestamp = new Date().toLocaleString();
+      const currentUserEmail = route.params.email;
       const newNoteObject = {
         IncrementedId: notes.length + 1,
         title: title,
         content: newNote,
         timestamp: timestamp,
         imagePath: "",
+        email: currentUserEmail,
       };
 
       try {
@@ -69,6 +80,17 @@ export default function Home({ navigation, route }) {
         console.error("Error adding note to Firestore:", error);
       }
     }
+  };
+
+  const logout = () => {
+    auth
+      .signOut()
+      .then(() => {
+        navigation.navigate("Authentication");
+      })
+      .catch((error) => {
+        console.error("Error logging out:", error);
+      });
   };
 
   async function updateNote(id, title, content) {
@@ -167,6 +189,7 @@ export default function Home({ navigation, route }) {
         placeholder="Write note..."
         multiline={true}
       />
+      <Button title="Logout" onPress={logout} />
       <Image
         style={{
           width: 400,
